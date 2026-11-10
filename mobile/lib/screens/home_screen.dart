@@ -100,11 +100,12 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       if (selected == 9 && analyticsUnlocked) await loadAnalytics();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           loading = false;
           error = e.toString();
         });
+      }
     }
   }
 
@@ -144,9 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
       await refresh();
       return true;
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
       return false;
     }
   }
@@ -156,7 +158,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!editing &&
           !await signIn(
               title: 'Staff analytics access',
-              action: 'View analytics')) return;
+              action: 'View analytics')) {
+        return;
+      }
       if (!mounted) return;
       setState(() => analyticsUnlocked = true);
     }
@@ -179,8 +183,9 @@ class _HomeScreenState extends State<HomeScreen> {
         firstDate: today,
         lastDate: DateTime(now.year + 3, now.month, now.day),
         helpText: 'Select activity date');
-    if (picked != null)
+    if (picked != null) {
       controller.text = DateFormat('yyyy-MM-dd').format(picked);
+    }
   }
 
   Future<void> _pickTime(
@@ -259,9 +264,10 @@ class _HomeScreenState extends State<HomeScreen> {
     };
     final requiredField = collection == 'facilitators' ? 'name' : 'title';
     if ((data[requiredField] ?? '').toString().isEmpty) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('$requiredField is required.')));
+      }
       return;
     }
     if (collection == 'modules') {
@@ -273,17 +279,20 @@ class _HomeScreenState extends State<HomeScreen> {
           : '${collection.substring(0, 3)}-${DateTime.now().microsecondsSinceEpoch}';
       if (id.isEmpty) throw Exception('Module code is required.');
       if (collection == 'modules' &&
-          records['modules']!.any((row) => row['id'].toString() == id))
+          records['modules']!.any((row) => row['id'].toString() == id)) {
         throw Exception('That module code already exists.');
+      }
       await api.save(collection, id, data);
       await refresh();
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Saved and shared with everyone.')));
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
     }
   }
 
@@ -376,17 +385,19 @@ class _HomeScreenState extends State<HomeScreen> {
     if (accepted != true) return;
     final label = code.text.trim();
     if (label.isEmpty) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Enter a module code or activity label.')));
+      }
       return;
     }
     final sessionId = '${slot}_$day';
     if (records['cells']!.any((row) => row['id'].toString() == sessionId)) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text(
                 'That timetable slot already contains a session. Remove it first before adding another.')));
+      }
       return;
     }
     try {
@@ -399,9 +410,10 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       await refresh();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
     }
   }
 
@@ -424,9 +436,10 @@ class _HomeScreenState extends State<HomeScreen> {
       await api.remove(collection, id);
       await refresh();
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(e.toString())));
+      }
     }
   }
 
@@ -671,9 +684,10 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.add),
               label: const Text('Add module'))));
     }
-    if (rows.isEmpty)
+    if (rows.isEmpty) {
       widgets.add(_panel('No records yet',
           [const Text('No shared records have been added.')]));
+    }
     for (final row in rows) {
       final data = Map<String, dynamic>.from(row['data'] ?? {});
       final title = (data['title'] ?? data['name'] ?? row['id']).toString();
@@ -700,10 +714,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       await Clipboard.setData(ClipboardData(
                           text:
                               '${data['title'] ?? ''}\n${data['message'] ?? ''}\n${data['url'] ?? ''}'));
-                      if (mounted)
+                      if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content: Text('Communication copied.')));
+                      }
                     }
                   : null)));
     }
@@ -731,7 +746,9 @@ class _HomeScreenState extends State<HomeScreen> {
           r < 0 ||
           r >= times.length ||
           c < 0 ||
-          c >= days.length) continue;
+          c >= days.length) {
+        continue;
+      }
       grouped.putIfAbsent(c, () => []).add({'r': r, 'data': row['data'] ?? {}});
     }
     return [
@@ -873,8 +890,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<Widget> _analytics() {
-    if (analytics['error'] != null)
+    if (analytics['error'] != null) {
       return [Text(analytics['error'].toString())];
+    }
     final counts = Map<String, dynamic>.from(analytics['counts'] ?? {});
     final modes = Map<String, dynamic>.from(analytics['delivery_modes'] ?? {});
     return [
@@ -937,9 +955,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 final data = await api.backup();
                 await Clipboard.setData(ClipboardData(
                     text: const JsonEncoder.withIndent('  ').convert(data)));
-                if (mounted)
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text('JSON backup copied to clipboard.')));
+                }
               },
               icon: const Icon(Icons.copy),
               label: const Text('Copy shared JSON backup')),
@@ -951,9 +970,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       '${r['id']},${(r['data']['title'] ?? r['data']['name'] ?? '').toString().replaceAll(',', ' ')},${jsonEncode(r['data'])}'))
                 ];
                 await Clipboard.setData(ClipboardData(text: lines.join('\n')));
-                if (mounted)
+                if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text('Calendar CSV copied to clipboard.')));
+                }
               },
               icon: const Icon(Icons.table_chart_outlined),
               label: const Text('Copy calendar CSV')),
